@@ -1,0 +1,12 @@
+{
+    "profiles": {
+        "run.py": {
+            "commandName": "Project",
+            "commandLineArgs": "",
+            "workingDirectory": "",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    }
+}
