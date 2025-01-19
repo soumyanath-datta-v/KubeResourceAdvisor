@@ -31,8 +31,8 @@ A Python-based tool for analyzing and optimizing Kubernetes resource allocations
 2. Create and activate virtual environment:
 ```sh
 python -m venv venv
-source venv/Scripts/activate  # On Windows
-pip install -r requirements.txt
+venv/Scripts/activate  # On Windows
+pip install -r pandas matplotlib scikit-learn prophet
 python run.py
 ```
 
