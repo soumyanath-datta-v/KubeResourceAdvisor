@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-from typing import List, Protocol
-from datetime import datetime
-import logging
 
 @dataclass
 class PodMetrics:

@@ -3,12 +3,11 @@ from typing import List, Set, Dict, Any
 import re
 import logging
 import pandas as pd
-from performance_test.data_reader import DataReader
-from performance_test.models import PodMetrics
+from common.data_reader import DataReader
+from metric_analyzer.models import PodMetrics
 from recommender_system.resource_recommender import ResourceRecommender
 from .metrics_visualizer import MetricsVisualizer
-from .data_reader import DataReader
-from.metrics_processor import MetricsProcessor
+from .metrics_processor import MetricsProcessor
 
 class KubernetesMonitor:
     def __init__(self, 

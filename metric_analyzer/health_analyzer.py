@@ -1,7 +1,7 @@
 
 from typing import Set, List
 import re
-from .log_config import setup_logging
+from logs.log_config import setup_logging
 
 class HealthAnalyzer:
     def analyze_pods(self, lines: List[str]) -> Set[str]:

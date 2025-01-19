@@ -1,4 +1,4 @@
-from performance_test.kubernetes_monitor import KubernetesMonitor
+from metric_analyzer.kubernetes_monitor import KubernetesMonitor
 
 def print_resource_recommendation(resource_type: str, metrics: dict):
     print(f"\n{resource_type.upper()} Resources:")
