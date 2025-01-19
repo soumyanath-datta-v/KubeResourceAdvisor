@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 import pandas as pd
 import re
-from .log_config import setup_logging
+from logs.log_config import setup_logging
 from .models import PodMetrics
 
 class MetricsProcessor:
@@ -10,7 +10,7 @@ class MetricsProcessor:
         self.date = date or datetime.now().strftime('%Y-%m-%d')
         self.logger = setup_logging()
     
-    def _parse_metric_line(self, line: str, timestamp: datetime) -> List[PodMetrics]:
+    def _parse_metric_line(self, line: str, timestamp: datetime) -> PodMetrics:
         parts = line.split()
         if len(parts) >= 3:
             return PodMetrics(

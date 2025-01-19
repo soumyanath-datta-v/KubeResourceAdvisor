@@ -1,5 +1,6 @@
 from typing import List
-from .log_config import setup_logging
+from logs.log_config import setup_logging
+
 
 class DataReader:
     def __init__(self, perf_file: str, health_file: str):

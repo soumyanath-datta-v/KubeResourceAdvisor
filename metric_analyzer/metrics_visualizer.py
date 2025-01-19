@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from typing import List
-from .log_config import setup_logging
+from logs.log_config import setup_logging
 from .models import PodMetrics
 
 class MetricsVisualizer:
