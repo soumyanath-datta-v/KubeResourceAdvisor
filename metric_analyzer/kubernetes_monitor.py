@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from common.data_reader import DataReader
 from metric_analyzer.models import PodMetrics
-from recommender_system.resource_recommender import ResourceRecommender
+from recommender_system.resource_recommender import ResourceRecommenderProphet
 from .metrics_visualizer import MetricsVisualizer
 from .metrics_processor import MetricsProcessor
 
@@ -64,7 +64,7 @@ class KubernetesMonitor:
             # Set timestamp as index
             df.set_index('timestamp', inplace=True)
             
-            recommender = ResourceRecommender()
+            recommender = ResourceRecommenderProphet()
             cpu_rec = recommender.generate_recommendation(df, 'cpu')
             memory_rec = recommender.generate_recommendation(df, 'memory')
             

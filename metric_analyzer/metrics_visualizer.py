@@ -98,11 +98,28 @@ class MetricsVisualizer:
         ax.legend()
 
     def create_resource_analysis(self, metrics: List[PodMetrics], service_name: str):
+        """Create detailed resource usage visualizations for a given service.
+        This method generates a comprehensive visualization of resource metrics including:
+        1. Resource Distribution Plot (CPU and Memory usage distribution)
+        2. Usage Patterns over time with average and peak CPU usage
+        3. Pod scaling patterns showing pod count over time
+        4. Resource efficiency distribution
+        Args:
+            metrics (List[PodMetrics]): List of pod metric objects containing resource usage data
+            service_name (str): Name of the service to analyze
+        Returns:
+            None. Saves the generated plot as 'resource_analysis.png' in the service directory
+        The generated plot contains four subplots:
+        - Top left: Box plot showing CPU and Memory usage distribution
+        - Top right: Time series plot of CPU usage with average and peak lines
+        - Bottom left: Pod count variation over time
+        - Bottom right: Histogram showing resource efficiency distribution
+        """
         """Create detailed resource usage visualizations."""
         service_dir = self._get_service_dir(service_name)
         df = pd.DataFrame([vars(m) for m in metrics])
         
-        fig = plt.figure(figsize=(20, 15))
+        _ = plt.figure(figsize=(20, 15))
         
         # Resource Distribution Plot
         ax1 = plt.subplot(221)

@@ -169,7 +169,5 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-Input/performance-test.txt
-Input/performance-test-restarts-end.txt
- 
+inputs/
 visualizations/

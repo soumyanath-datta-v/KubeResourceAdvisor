@@ -5,48 +5,64 @@ import logging
 from prophet import Prophet
 
 class ResourceParser:
-    @staticmethod
-    def parse_cpu(value: str) -> float:
-        """Convert Kubernetes CPU value to cores."""
-        if not isinstance(value, str):
-            return float(value)
-            
-        # Handle concatenated values
-        if len(value) > 10:  # Likely concatenated
-            values = re.findall(r'(\d+)m', value)
-            if values:
-                return float(values[0]) / 1000  # Take first value
-                
-        # Handle single value
-        match = re.match(r'^(\d+)m$', value)
-        if match:
-            return float(match.group(1)) / 1000
+    def __init__(self):
+        self.memory_units = {
+            'Ki': 1/1024,      # Convert to Mi
+            'Mi': 1,           # Base unit
+            'Gi': 1024,        # Convert to Mi
+            'Ti': 1024*1024    # Convert to Mi
+        }
+        self.cpu_units = {
+            'm': 1,            # Base unit (millicores)
+            '': 1000           # Convert cores to millicores
+        }
+
+    def _parse_kubernetes_memory(self, value: str) -> float:
+        """Convert memory values to Mi"""
         try:
-            return float(value)
-        except ValueError:
+            if isinstance(value, (int, float)):
+                return float(value)
+            
+            if not isinstance(value, str):
+                return 0.0
+
+            match = re.match(r'^(\d+\.?\d*)([KMGT]i)?$', value)
+            if match:
+                number = float(match.group(1))
+                unit = match.group(2) or ''
+                return number * self.memory_units.get(unit, 1)
+            return 0.0
+        except (ValueError, TypeError):
+            self.logger.warning(f"Could not parse memory value: {value}")
             return 0.0
 
-    @staticmethod
-    def parse_memory(value: str) -> float:
-        """Convert Kubernetes memory value to bytes."""
-        if not isinstance(value, str):
-            return float(value)
+    def parse_cpu(self, value: str) -> float:
+        """Convert CPU values to millicores (m)"""
+        try:
+            if isinstance(value, (int, float)):
+                return float(value) * 1000  # Convert cores to millicores
             
-        units = {
-            'Ki': 1024,
-            'Mi': 1024**2,
-            'Gi': 1024**3,
-            'Ti': 1024**4
-        }
-        
-        match = re.match(r'^(\d+)([KMGT]i)?$', value)
-        if match:
-            num = float(match.group(1))
-            unit = match.group(2) or ''
-            return num * units.get(unit, 1)
-        return float(value)
+            if isinstance(value, str):
+                if value.endswith('m'):
+                    return float(value.rstrip('m'))
+                return float(value) * 1000  # Convert cores to millicores
+            return 0.0
+        except (ValueError, TypeError):
+            self.logger.warning(f"Could not parse CPU value: {value}")
+            return 0.0
 
-class ResourceRecommender:
+    def _preprocess_metrics(self, df: pd.DataFrame, resource_type: str) -> pd.DataFrame:
+        """Preprocess metrics DataFrame for Prophet model with standardized units."""
+        df_copy = df.copy()
+        
+        if resource_type == 'cpu':
+            df_copy['y'] = df_copy['y'].apply(self.parse_cpu)  # Convert to millicores
+        elif resource_type == 'memory':
+            df_copy['y'] = df_copy['y'].apply(self._parse_kubernetes_memory)  # Convert to Mi
+            
+        return df_copy
+
+class ResourceRecommenderProphet:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.memory_units = {
@@ -63,7 +79,7 @@ class ResourceRecommender:
                 return float(value)
             if isinstance(value, str):
                 if value.endswith('m'):
-                    return float(value.rstrip('m')) / 1000
+                    return float(value.rstrip('m'))
                 return float(value)
             return 0.0
         except (ValueError, TypeError):
@@ -128,21 +144,21 @@ class ResourceRecommender:
             # Get forecast
             model = Prophet(
                 growth='linear',                     # Use a simple linear trend
-                n_changepoints=5,                    # Reduce the number of changepoints
-                changepoint_range=1.0,               # Use the entire dataset for changepoints
+                # n_changepoints=5,                    # Reduce the number of changepoints
+                # changepoint_range=1.0,               # Use the entire dataset for changepoints
                 yearly_seasonality=False,            # Disable yearly seasonality
                 weekly_seasonality=False,            # Disable weekly seasonality
                 daily_seasonality=False,             # Disable daily seasonality
                 seasonality_mode='additive',         # Additive seasonality for small datasets
                 seasonality_prior_scale=5,           # Reduce flexibility to prevent overfitting
                 interval_width=0.6,                  # Narrower confidence intervals
-                uncertainty_samples=100,             # Reduce uncertainty sampling
+                uncertainty_samples=10,             # Reduce uncertainty sampling
             )
 
-            model.add_seasonality(name='hourly', period=1, fourier_order=3)
+            model.add_seasonality(name='hourly', period=60, fourier_order=3)
             
             model.fit(processed_df)
-            future = model.make_future_dataframe(periods=30, freq='T')
+            future = model.make_future_dataframe(periods=7, freq='T')
             forecast = model.predict(future)
             
             # Calculate recommendation
@@ -166,3 +182,5 @@ class ResourceRecommender:
         except Exception as e:
             self.logger.error(f"Failed to generate recommendation: {str(e)}")
             raise
+
+

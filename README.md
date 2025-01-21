@@ -32,7 +32,7 @@ A Python-based tool for analyzing and optimizing Kubernetes resource allocations
 ```sh
 python -m venv venv
 venv/Scripts/activate  # On Windows
-pip install -r pandas matplotlib scikit-learn prophet
+pip install pandas matplotlib scikit-learn prophet
 python run.py
 ```
 
