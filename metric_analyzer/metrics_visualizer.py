@@ -54,7 +54,7 @@ class MetricsVisualizer:
         ax1.set_xlabel('Time')
         ax1.set_ylabel('CPU (millicores)')
         ax1.grid(True)
-        ax1.legend()
+        ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
         # Plot Memory
         for pod in df['name'].unique():
@@ -66,11 +66,13 @@ class MetricsVisualizer:
         ax2.set_xlabel('Time')
         ax2.set_ylabel('Memory (Mi)')
         ax2.grid(True)
-        ax2.legend()
+        ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         
+        # Adjust layout to prevent legend overlap
         plt.tight_layout()
+        plt.subplots_adjust(right=0.85)  # Make room for legends
         output_path = os.path.join(service_dir, 'metrics.png')
-        plt.savefig(output_path)
+        plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
         self.logger.info(f"Saved metrics visualization to {output_path}")

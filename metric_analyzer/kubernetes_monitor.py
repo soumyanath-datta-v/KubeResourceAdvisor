@@ -25,25 +25,61 @@ class KubernetesMonitor:
         match = re.match(pattern, pod_name)
         return match.group(1) if match else pod_name
     
+    def _parse_duration(self, duration: str) -> float:
+        """Convert duration string to hours
+        Examples: "18h ago", "(25m3s ago)", "45m ago", "(2h15m ago)"
+        """
+        # Remove parentheses and "ago"  
+        duration = duration.replace("(", "").replace(")", "").replace(" ago", "")
+        hours = 0.0
+        
+        if 'h' in duration:
+            h_parts = duration.split('h')
+            hours += float(h_parts[0])
+            duration = h_parts[1] if len(h_parts) > 1 else ""
+            
+        if 'm' in duration:
+            m_parts = duration.split('m')
+            hours += float(m_parts[0]) / 60
+            duration = m_parts[1] if len(m_parts) > 1 else ""
+            
+        if 's' in duration:
+            s_parts = duration.split('s')
+            hours += float(s_parts[0]) / 3600
+            
+        return hours
+
+    def _process_single_health_line(self, line: str) -> str | None:
+        if "NAME" in line or not line.strip():
+            return None
+            
+        try:
+            parts = line.strip().split()
+            if len(parts) < 7:
+                return None
+                
+            name = parts[1]
+            status = parts[3]
+            restarts = parts[4]
+            age = " ".join(parts[5:7])
+            service = self._extract_service_name(name)
+            
+            restart_count = int(restarts.split('(')[0].strip())
+            hours_ago = self._parse_duration(age)
+            
+            if (restart_count > 0 or status == "CrashLoopBackOff") and hours_ago <= 2:
+                return service
+        except Exception as e:
+            self.logger.error(f"Failed to process line: {line.strip()}", exc_info=True)
+            
+        return None
+
     def _process_health_data(self, health_data: List[str]) -> Set[str]:
         problematic_services = set()
         for line in health_data:
-            if "NAME" not in line and line.strip():
-                try:
-                    parts = line.strip().split()
-                    if len(parts) >= 6:
-                        name = parts[1]
-                        status = parts[3]
-                        restarts = parts[4]
-                        service = self._extract_service_name(name)                                            
-                        
-                        restart_count = int(restarts.split('(')[0].strip())
-                        if restart_count > 0 or status == "CrashLoopBackOff":
-                            problematic_services.add(service)
-                except Exception as e:
-                    self.logger.error(f"Failed to process line: {line.strip()}", exc_info=True)
-                    continue
-        
+            service = self._process_single_health_line(line)
+            if service:
+                problematic_services.add(service)
         return problematic_services
 
     def analyze_resource_usage(self, metrics_list: List[PodMetrics], service_name: str) -> Dict[str, Any]:
