@@ -4,6 +4,7 @@ from .metrics_visualizer import MetricsVisualizer
 from .metrics_processor import MetricsProcessor
 from common.data_reader import DataReader
 from logs.log_config import setup_logging
+from data_fetch_module.MetricsCollector import MetricsCollector
 
 __all__ = [
     'PodMetrics',
@@ -12,5 +13,6 @@ __all__ = [
     'MetricsVisualizer',
     'MetricsProcessor',
     'DataReader',
-    'setup_logging'
+    'setup_logging',
+    'MetricsCollector'
 ]
