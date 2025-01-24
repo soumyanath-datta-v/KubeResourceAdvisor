@@ -142,14 +142,28 @@ class MetricsVisualizer:
         ax3 = plt.subplot(223)
         pod_counts = df.groupby('timestamp')['name'].nunique()
         ax3.plot(pod_counts.index, pod_counts.values)
-        ax3.set_title('Pod Count Over Time')
+        ax3.set_title('Pod Count Over Time')        
         
-        # Resource Efficiency
+        # Memory Usage Patterns
         ax4 = plt.subplot(224)
-        efficiency_ratio = (cpu_values / cpu_values.max() * 100)
-        ax4.hist(efficiency_ratio, bins=20)
-        ax4.set_title('Resource Efficiency Distribution')
-        ax4.set_xlabel('Efficiency %')
+        memory_timestamps = range(len(memory_values))  # Create time points
+        
+        # Calculate average and peak
+        avg_memory = sum(memory_values) / len(memory_values)
+        peak_memory = max(memory_values)
+        
+        # Plot memory usage line
+        ax4.plot(memory_timestamps, memory_values, color='purple', linewidth=2, label='Memory Usage')
+        
+        # Add average and peak lines
+        ax4.axhline(y=avg_memory, color='green', linestyle='--', label=f'Avg: {avg_memory:.2f} MB')
+        ax4.axhline(y=peak_memory, color='red', linestyle='--', label=f'Peak: {peak_memory:.2f} MB')
+        
+        ax4.set_title('Memory Usage Pattern')
+        ax4.set_xlabel('Time')
+        ax4.set_ylabel('Memory Usage (MB)')
+        ax4.grid(True, linestyle='--', alpha=0.7)
+        ax4.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
         
         plt.suptitle(f'Resource Analysis - {service_name}')
         plt.tight_layout()
