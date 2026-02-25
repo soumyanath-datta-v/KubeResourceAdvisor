@@ -27,12 +27,17 @@ class KubernetesMonitor:
     
     def _parse_duration(self, duration: str) -> float:
         """Convert duration string to hours
-        Examples: "18h ago", "(25m3s ago)", "45m ago", "(2h15m ago)"
+        Examples: "18h ago", "(25m3s ago)", "45m ago", "(2h15m ago)", "5d23h ago", "6d1h"
         """
         # Remove parentheses and "ago"  
         duration = duration.replace("(", "").replace(")", "").replace(" ago", "")
         hours = 0.0
         
+        if 'd' in duration:
+            d_parts = duration.split('d')
+            hours += float(d_parts[0]) * 24
+            duration = d_parts[1] if len(d_parts) > 1 else ""
+
         if 'h' in duration:
             h_parts = duration.split('h')
             hours += float(h_parts[0])

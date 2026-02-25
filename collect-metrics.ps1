@@ -23,8 +23,8 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Namespace,
 
-    [Parameter(Mandatory = $true)]
-    [string]$ServiceNames,
+    [Parameter(Mandatory = $false)]
+    [string]$ServiceNames = "",
 
     [Parameter(Mandatory = $true)]
     [int]$DurationMinutes
@@ -49,7 +49,11 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host " Kubernetes Metrics Collector" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "Namespace       : $Namespace"
-Write-Host "Service filter  : $ServiceNames"
+if ($ServiceNames) {
+    Write-Host "Service filter  : $ServiceNames"
+} else {
+    Write-Host "Service filter  : All services"
+}
 Write-Host "Duration        : $DurationMinutes minute(s)"
 Write-Host "Interval        : 30 seconds"
 Write-Host "Metrics file    : $metricsFile"
@@ -74,7 +78,11 @@ while ((Get-Date) -lt $endTime) {
 
     # ---- Capture CPU / Memory metrics (kubectl top pods) ----
     try {
-        $topOutput = kubectl top pods -n $Namespace 2>&1 | findstr $ServiceNames
+        if ($ServiceNames) {
+            $topOutput = kubectl top pods -n $Namespace 2>&1 | findstr $ServiceNames
+        } else {
+            $topOutput = kubectl top pods -n $Namespace 2>&1 | Select-Object -Skip 1
+        }
         if ($topOutput) {
             foreach ($line in $topOutput) {
                 $formattedLine = "[$timeTag] $line"
@@ -93,7 +101,11 @@ while ((Get-Date) -lt $endTime) {
 
     # ---- Capture restarts / health data (kubectl get po) ----
     try {
-        $poOutput = kubectl get po -n $Namespace 2>&1 | findstr $ServiceNames
+        if ($ServiceNames) {
+            $poOutput = kubectl get po -n $Namespace 2>&1 | findstr $ServiceNames
+        } else {
+            $poOutput = kubectl get po -n $Namespace 2>&1 | Select-Object -Skip 1
+        }
         if ($poOutput) {
             foreach ($line in $poOutput) {
                 $restartsLineIndex++

@@ -158,7 +158,7 @@ class ResourceRecommenderProphet:
             model.add_seasonality(name='hourly', period=60, fourier_order=3)
             
             model.fit(processed_df)
-            future = model.make_future_dataframe(periods=7, freq='T')
+            future = model.make_future_dataframe(periods=7, freq='min')
             forecast = model.predict(future)
             
             # Calculate recommendation
