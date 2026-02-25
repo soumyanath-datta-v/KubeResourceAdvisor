@@ -34,10 +34,8 @@ def collect_metrics_interactive():
         namespace = input("Namespace cannot be empty. Enter namespace: ").strip()
 
     service_names = input(
-        "Enter service names (space-separated, e.g. tiger-daemon workflowservice): "
+        "Enter service names (space-separated, or press Enter for ALL services): "
     ).strip()
-    while not service_names:
-        service_names = input("Service names cannot be empty. Enter service names: ").strip()
 
     duration = input("Enter collection duration in minutes (e.g. 5): ").strip()
     while not duration.isdigit() or int(duration) <= 0:
@@ -72,9 +70,12 @@ def run_collector(namespace: str, service_names: str, duration_minutes: int) -> 
     cmd = [
         "powershell", "-ExecutionPolicy", "Bypass", "-File", COLLECT_SCRIPT,
         "-Namespace", namespace,
-        "-ServiceNames", service_names,
         "-DurationMinutes", str(duration_minutes),
     ]
+    
+    # Only add ServiceNames if specified (allow empty = all services)
+    if service_names:
+        cmd.extend(["-ServiceNames", service_names])
 
     result = subprocess.run(cmd, cwd=SCRIPT_DIR)
 
@@ -134,7 +135,8 @@ def parse_arguments():
         '--services', '-s',
         type=str,
         required=False,
-        help='Space-separated service names in quotes (used with --collect)'
+        default="",
+        help='Space-separated service names in quotes (omit to collect ALL services in namespace)'
     )
     parser.add_argument(
         '--duration', '-d',
@@ -150,7 +152,7 @@ def get_file_paths():
 
     # Mode 1: Collect live metrics then analyse
     if args.collect:
-        if args.namespace and args.services and args.duration:
+        if args.namespace and args.duration is not None:
             namespace, service_names, duration = args.namespace, args.services, args.duration
         else:
             namespace, service_names, duration = collect_metrics_interactive()
@@ -216,6 +218,9 @@ def main():
         print("======================")
         for service, rec in recommendations.items():
             print(f"\nService: {service}")
+            if not rec or 'metrics' not in rec:
+                print("  No recommendation available (insufficient metrics data)")
+                continue
             print_resource_recommendation('cpu', rec['metrics']['cpu'])
             print_resource_recommendation('memory', rec['metrics']['memory'])
     else:
