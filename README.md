@@ -6,7 +6,7 @@ A Python-based tool for analyzing and optimizing Kubernetes resource allocations
 
 - **Automated Data Collection**: PowerShell script that captures live `kubectl top pods` and `kubectl get po` metrics at 30-second intervals
 - **Health Analysis**: Identifies services with restarts or CrashLoopBackOff status
-- **Time-Series Forecasting**: Uses Prophet for 24-hour resource usage prediction
+- **Time-Series Forecasting**: Uses Prophet for short-term resource usage prediction
 - **Resource Recommendations**: Generates CPU and memory recommendations based on usage patterns
 - **Visualization**: Creates charts for resource usage trends
 
@@ -33,7 +33,7 @@ A Python-based tool for analyzing and optimizing Kubernetes resource allocations
 - **Python 3.8+** with `venv` support
 - **kubectl** installed and configured with access to your Kubernetes cluster
 - **PowerShell** (Windows) or **PowerShell Core** (cross-platform)
-- Python packages: `pandas`, `matplotlib`, `scikit-learn`, `prophet`
+- Python packages: `pandas`, `matplotlib`, `prophet`
 
 ## Installation
 
@@ -52,7 +52,7 @@ venv\Scripts\activate  # Windows
 
 3. Install dependencies:
 ```sh
-pip install pandas matplotlib scikit-learn prophet
+pip install pandas matplotlib prophet
 ```
 
 ## Usage
@@ -142,9 +142,9 @@ The collector generates two files in `collected-data/`:
 The tool generates:
 
 1. **Console output**: Problematic services list with CPU/memory recommendations
-2. **Visualizations** (in `visualizations/`):
-   - Resource usage charts
-   - Trend analysis graphs
+2. **Visualizations** (in `visualizations/<service-name>/`):
+   - `metrics.png` — CPU and memory usage over time per pod
+   - `resource_analysis.png` — Resource distribution, CPU/memory usage patterns, and pod scaling
 
 ## CLI Arguments Reference
 
